@@ -1,4 +1,4 @@
-package ru.practicum.statsvc.model;
+package ru.practicum.statsvc.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

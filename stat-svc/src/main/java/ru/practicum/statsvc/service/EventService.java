@@ -1,7 +1,7 @@
 package ru.practicum.statsvc.service;
 
-import ru.practicum.statsvc.model.EventDtoIn;
-import ru.practicum.statsvc.model.EventDtoOut;
+import ru.practicum.statsvc.model.dto.EventDtoIn;
+import ru.practicum.statsvc.model.dto.EventDtoOut;
 
 import java.time.LocalDateTime;
 import java.util.List;

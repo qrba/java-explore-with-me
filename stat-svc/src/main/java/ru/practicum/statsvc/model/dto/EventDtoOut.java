@@ -1,4 +1,4 @@
-package ru.practicum.statsvc.model;
+package ru.practicum.statsvc.model.dto;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

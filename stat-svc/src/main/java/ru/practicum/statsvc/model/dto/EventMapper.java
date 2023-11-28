@@ -1,4 +1,6 @@
-package ru.practicum.statsvc.model;
+package ru.practicum.statsvc.model.dto;
+
+import ru.practicum.statsvc.model.Event;
 
 public class EventMapper {
     public static Event eventFromDto(EventDtoIn eventDtoIn) {
