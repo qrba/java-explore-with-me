@@ -1,17 +1,17 @@
 version: '3.8'
 services:
   stats-service:
-    build: ./stat-svc
-    image: stat_svc_image
-    container_name: stat_svc_container
+    build: ./stats/stats-svc
+    image: stats_svc_image
+    container_name: stats_svc_container
     ports:
       - "9090:9090"
     depends_on:
       - stats-db
     environment:
-      - DB_NAME=stat_db
-      - POSTGRES_USER=stat_user
-      - POSTGRES_PASSWORD=stat_password
+      - DB_NAME=stats_db
+      - POSTGRES_USER=stats_user
+      - POSTGRES_PASSWORD=stats_password
       - DB_HOST=stats-db
       - DB_PORT=5432
 
@@ -21,9 +21,9 @@ services:
     ports:
       - "5433:5432"
     environment:
-      - POSTGRES_DB=stat_db
-      - POSTGRES_USER=stat_user
-      - POSTGRES_PASSWORD=stat_password
+      - POSTGRES_DB=stats_db
+      - POSTGRES_USER=stats_user
+      - POSTGRES_PASSWORD=stats_password
 
   ewm-service:
     build: ./ewm-svc

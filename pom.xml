@@ -11,9 +11,10 @@
 	</parent>
 
 	<name>Explore With Me</name>
+
 	<modules>
-		<module>stat-svc</module>
 		<module>ewm-svc</module>
+		<module>stats</module>
 	</modules>
 
 	<groupId>ru.practicum</groupId>
