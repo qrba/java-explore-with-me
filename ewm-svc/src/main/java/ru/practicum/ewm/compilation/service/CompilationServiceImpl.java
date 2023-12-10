@@ -53,7 +53,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     @Transactional(readOnly = true)
     public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
-        log.info("Запрошен список подборок с pinned=" + pinned);
+        log.info("Запрошен список подборок");
         int page = from / size;
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
         return compilationStorage.findByPinned(pinned, pageable).stream()
