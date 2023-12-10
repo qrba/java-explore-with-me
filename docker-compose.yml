@@ -1,9 +1,9 @@
 version: '3.8'
 services:
-  stats-service:
+  stats-server:
     build: ./stats/stats-svc
-    image: stats_svc_image
-    container_name: stats_svc_container
+    image: stats_svr_image
+    container_name: stats_svr_container
     ports:
       - "9090:9090"
     depends_on:
@@ -33,7 +33,7 @@ services:
       - "8080:8080"
     depends_on:
       - ewm-db
-      - stats-service
+      - stats-server
     environment:
       - DB_NAME=ewm_db
       - POSTGRES_USER=ewm_user

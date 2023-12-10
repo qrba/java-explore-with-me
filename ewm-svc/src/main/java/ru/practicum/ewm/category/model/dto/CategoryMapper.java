@@ -10,10 +10,10 @@ public class CategoryMapper {
         );
     }
 
-    public static Category categoryFromCategoryDto(CategoryDto CategoryDto) {
+    public static Category categoryFromCategoryDto(CategoryDto categoryDto) {
         return new Category(
-                CategoryDto.getId(),
-                CategoryDto.getName()
+                categoryDto.getId(),
+                categoryDto.getName()
         );
     }
 
