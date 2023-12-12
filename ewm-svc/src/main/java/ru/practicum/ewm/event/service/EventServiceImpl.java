@@ -315,7 +315,7 @@ public class EventServiceImpl implements EventService {
             );
         Event event = eventOptional.get();
         EventState eventState = event.getState();
-        if (eventState.equals(EventState.PUBLISHED) || eventState.equals(EventState.CANCELED))
+        if (!eventState.equals(EventState.PENDING))
             throw new OperationConditionsFailureException("Изменение события с id=" + eventId + " невозможно");
         updateEvent(
                 event,

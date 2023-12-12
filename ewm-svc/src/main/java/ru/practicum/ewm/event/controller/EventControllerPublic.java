@@ -31,7 +31,7 @@ public class EventControllerPublic {
     }
 
     @GetMapping
-    public List<EventShortDto> getCategories(
+    public List<EventShortDto> getEvents(
             @RequestParam(required = false) String text,
             @RequestParam(required = false) List<Integer> categories,
             @RequestParam(required = false) Boolean paid,

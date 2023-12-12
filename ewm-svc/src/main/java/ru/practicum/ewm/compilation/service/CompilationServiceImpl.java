@@ -71,7 +71,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto getCompilationById(Integer compId) {
         Optional<Compilation> compilationOptional = compilationStorage.findById(compId);
         if (compilationOptional.isEmpty())
-            throw new CompilationNotFoundException("Категория с id=" + compId + " не найдена");
+            throw new CompilationNotFoundException("Подборка с id=" + compId + " не найдена");
         Compilation compilation = compilationOptional.get();
         log.info("Запрошена подборка {}", compilation);
         return compilationToDto(compilation, getEventShortDtoList(compilation));
@@ -91,7 +91,7 @@ public class CompilationServiceImpl implements CompilationService {
             return compilationToDto(compilation, getEventShortDtoList(compilation));
         } catch (DataIntegrityViolationException e) {
             throw new CompilationAlreadyExistsException(
-                    "Подборка с названием '" + newCompilationDto.getTitle() + "' уже существует"
+                    "Подборка с заголовком '" + newCompilationDto.getTitle() + "' уже существует"
             );
         }
     }
@@ -115,7 +115,16 @@ public class CompilationServiceImpl implements CompilationService {
         if (compilationOptional.isEmpty())
             throw new CompilationNotFoundException("Подборка с id=" + compId + " не найдена");
         Compilation compilation = compilationOptional.get();
-        if (title != null) compilation.setTitle(title);
+        if (title != null) {
+            if (
+                    !title.equals(compilation.getTitle()) &&
+                            compilationStorage.existsByTitle(updateCompilationRequest.getTitle())
+            )
+                throw new CompilationAlreadyExistsException(
+                        "Подборка с заголовком '" + updateCompilationRequest.getTitle() + "' уже существует"
+                );
+            compilation.setTitle(title);
+        }
         if (pinned != null) compilation.setPinned(pinned);
         if (newEventIds != null) {
             List<Integer> oldEventIds = compilation.getEvents().stream().map(Event::getId).collect(Collectors.toList());
@@ -145,10 +154,12 @@ public class CompilationServiceImpl implements CompilationService {
                     uris,
                     true
             );
-            ObjectMapper mapper = new ObjectMapper();
-            List<ViewStatsDto> statsDto = mapper.convertValue(response.getBody(), new TypeReference<>() {});
-            for (ViewStatsDto stat : statsDto)
-                hits.put(Integer.parseInt(stat.getUri().substring(8)), stat.getHits());
+            if (response.getBody() != null) {
+                ObjectMapper mapper = new ObjectMapper();
+                List<ViewStatsDto> statsDto = mapper.convertValue(response.getBody(), new TypeReference<>() {});
+                for (ViewStatsDto stat : statsDto)
+                    hits.put(Integer.parseInt(stat.getUri().substring(8)), stat.getHits());
+            }
         }
         return events.stream()
                 .map(

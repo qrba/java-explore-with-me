@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.exception.UserAlreadyExistsException;
+import ru.practicum.ewm.exception.UserNotFoundException;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.model.dto.NewUserRequest;
 import ru.practicum.ewm.user.model.dto.UserDto;
@@ -17,6 +18,8 @@ import ru.practicum.ewm.user.storage.UserStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ru.practicum.ewm.user.model.dto.UserMapper.userFromNewUserRequest;
 
 @RequiredArgsConstructor
 @Service
@@ -39,7 +42,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto addUser(NewUserRequest newUserRequest) {
         try {
-            User user = userStorage.save(UserMapper.userFromNewUserRequest(newUserRequest));
+            User user = userStorage.save(userFromNewUserRequest(newUserRequest));
             log.info("Добавлен пользователь {}", user);
             return UserMapper.userToUserDto(user);
         } catch (DataIntegrityViolationException e) {
@@ -52,6 +55,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(int userId) {
+        if (!userStorage.existsById(userId))
+            throw new UserNotFoundException("Пользователь с id=" + userId + " не найден");
         userStorage.deleteById(userId);
         log.info("Удален пользователь с id={}", userId);
     }

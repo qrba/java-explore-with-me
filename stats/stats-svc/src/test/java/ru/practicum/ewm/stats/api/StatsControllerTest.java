@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = StatsController.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class EndpointHitControllerTest {
+public class StatsControllerTest {
     @MockBean
     private StatsService statsService;
     private final ObjectMapper mapper;

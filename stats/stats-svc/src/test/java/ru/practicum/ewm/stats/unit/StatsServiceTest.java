@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 
 @ExtendWith(MockitoExtension.class)
-public class EndpointHitServiceTest {
+public class StatsServiceTest {
     @Mock
     private StatsStorage statsStorage;
     @InjectMocks
