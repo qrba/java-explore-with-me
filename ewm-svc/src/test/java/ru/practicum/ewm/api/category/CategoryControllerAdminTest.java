@@ -100,6 +100,6 @@ public class CategoryControllerAdminTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(categoryDto.getId()))
-                .andExpect(jsonPath("$.name").value(categoryDto.getName()));;
+                .andExpect(jsonPath("$.name").value(categoryDto.getName()));
     }
 }
