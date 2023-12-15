@@ -7,7 +7,7 @@ import ru.practicum.ewm.compilation.model.Compilation;
 
 import java.util.List;
 
-public interface CompilationStorage extends JpaRepository<Compilation, Integer> {
+public interface CompilationRepository extends JpaRepository<Compilation, Integer> {
     @Query("SELECT c " +
             "FROM Compilation AS c " +
             "WHERE (c.pinned = :pinned OR :pinned = null)")

@@ -7,6 +7,7 @@ import ru.practicum.ewm.event.model.Location;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
@@ -26,10 +27,12 @@ public class NewEventDto {
     private final LocalDateTime eventDate;
     @NotNull(message = "Для события должна быть указана локация проведения")
     private final Location location;
-    private Boolean paid;
-    private Integer participantLimit;
+    private boolean paid;
+    @PositiveOrZero
+    private int participantLimit;
     private Boolean requestModeration;
     @NotBlank(message = "Для события должен быть заполнен заголовок")
     @Size(min = 3, max = 120, message = "Размер заголовка должен быть не менее 3 и не более 120 символов")
     private final String title;
+
 }

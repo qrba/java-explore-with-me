@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.ewm.category.model.dto.CategoryDto;
 import ru.practicum.ewm.category.service.CategoryService;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -24,8 +26,8 @@ public class CategoryControllerPublic {
 
     @GetMapping
     public List<CategoryDto> getCategories(
-            @RequestParam(defaultValue = "0") Integer from,
-            @RequestParam(defaultValue = "10") Integer size
+            @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+            @Positive @RequestParam(defaultValue = "10") Integer size
     ) {
         return categoryService.getCategories(from, size);
     }

@@ -14,7 +14,8 @@ import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.model.dto.CategoryDto;
 import ru.practicum.ewm.category.model.dto.NewCategoryDto;
 import ru.practicum.ewm.category.service.CategoryServiceImpl;
-import ru.practicum.ewm.category.storage.CategoryStorage;
+import ru.practicum.ewm.category.storage.CategoryRepository;
+import ru.practicum.ewm.event.storage.EventRepository;
 import ru.practicum.ewm.exception.CategoryAlreadyExistsException;
 import ru.practicum.ewm.exception.CategoryNotFoundException;
 import ru.practicum.ewm.exception.OperationConditionsFailureException;
@@ -34,7 +35,9 @@ import static ru.practicum.ewm.category.model.dto.CategoryMapper.categoryToCateg
 @ExtendWith(MockitoExtension.class)
 public class CategoryServiceTest {
     @Mock
-    private CategoryStorage categoryStorage;
+    private CategoryRepository categoryRepository;
+    @Mock
+    private EventRepository eventRepository;
     @InjectMocks
     private CategoryServiceImpl categoryService;
 
@@ -44,11 +47,11 @@ public class CategoryServiceTest {
     @Test
     public void shouldAddCategory() {
         Mockito
-                .when(categoryStorage.save(any(Category.class)))
+                .when(categoryRepository.save(any(Category.class)))
                 .then(returnsFirstArg());
 
         CategoryDto categoryDto = categoryToCategoryDto(
-                categoryStorage.save(
+                categoryRepository.save(
                         categoryFromNewCategoryDto(
                                 newCategoryDto
                         )
@@ -61,7 +64,7 @@ public class CategoryServiceTest {
     @Test
     public void shouldNotAddCategoryWhenNameNotUnique() {
         Mockito
-                .when(categoryStorage.save(any(Category.class)))
+                .when(categoryRepository.save(any(Category.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
         CategoryAlreadyExistsException e = Assertions.assertThrows(
@@ -75,10 +78,14 @@ public class CategoryServiceTest {
     @Test
     public void shouldDeleteCategory() {
         Mockito
-                .when(categoryStorage.existsById(anyInt()))
+                .when(categoryRepository.existsById(anyInt()))
                 .thenReturn(true);
+        Mockito
+                .when(eventRepository.countByCategoryId(anyInt()))
+                .thenReturn(0);
         categoryService.deleteCategory(1);
-        Mockito.verify(categoryStorage).deleteById(anyInt());
+
+        Mockito.verify(categoryRepository).deleteById(anyInt());
     }
 
     @Test
@@ -94,11 +101,11 @@ public class CategoryServiceTest {
     @Test
     public void shouldNotDeleteCategoryWhenCategoryNotEmpty() {
         Mockito
-                .when(categoryStorage.existsById(anyInt()))
+                .when(categoryRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .doThrow(DataIntegrityViolationException.class)
-                .when(categoryStorage).deleteById(anyInt());
+                .when(eventRepository.countByCategoryId(anyInt()))
+                .thenReturn(1);
 
         OperationConditionsFailureException e = Assertions.assertThrows(
                 OperationConditionsFailureException.class,
@@ -111,7 +118,7 @@ public class CategoryServiceTest {
     @Test
     public void shouldGetCategories() {
         Mockito
-                .when(categoryStorage.findAll(any(Pageable.class)))
+                .when(categoryRepository.findAll(any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(category)));
         List<CategoryDto> categoryDtoList = categoryService.getCategories(0, 10);
 
@@ -126,7 +133,7 @@ public class CategoryServiceTest {
     @Test
     public void shouldGetCategoryById() {
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
 
         CategoryDto categoryDto = categoryService.getCategoryById(1);
@@ -138,7 +145,7 @@ public class CategoryServiceTest {
     @Test
     public void shouldNotGetCategoryByIdWhenCategoryNotFound() {
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         CategoryNotFoundException e = Assertions.assertThrows(
@@ -153,7 +160,7 @@ public class CategoryServiceTest {
     public void shouldUpdateCategory() {
         CategoryDto categoryDto = categoryToCategoryDto(category);
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
         CategoryDto updatedCategoryDto = categoryService.updateCategory(categoryDto);
 
@@ -164,7 +171,7 @@ public class CategoryServiceTest {
     @Test
     public void shouldNotUpdateCategoryWhenCategoryNotFound() {
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         CategoryNotFoundException e = Assertions.assertThrows(
@@ -178,10 +185,10 @@ public class CategoryServiceTest {
     @Test
     public void shouldNotUpdateCategoryWhenNameNotUnique() {
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(new Category(1, "other name")));
         Mockito
-                .when(categoryStorage.existsByName(anyString()))
+                .when(categoryRepository.existsByNameAndIdNot(anyString(), anyInt()))
                 .thenReturn(true);
 
         CategoryAlreadyExistsException e = Assertions.assertThrows(

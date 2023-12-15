@@ -7,7 +7,7 @@ import ru.practicum.ewm.user.model.User;
 
 import java.util.List;
 
-public interface UserStorage extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT u " +
             "FROM User AS u " +
             "WHERE (u.id IN :ids OR :ids = null)")

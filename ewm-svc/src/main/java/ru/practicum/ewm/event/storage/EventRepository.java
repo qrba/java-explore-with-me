@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface EventStorage extends JpaRepository<Event, Integer> {
+public interface EventRepository extends JpaRepository<Event, Integer> {
     Optional<Event> findByIdAndState(Integer eventId, EventState state);
 
     @Query("SELECT e " +
@@ -54,4 +54,6 @@ public interface EventStorage extends JpaRepository<Event, Integer> {
             LocalDateTime rangeEnd,
             Pageable pageable
     );
+
+    Integer countByCategoryId(Integer catId);
 }

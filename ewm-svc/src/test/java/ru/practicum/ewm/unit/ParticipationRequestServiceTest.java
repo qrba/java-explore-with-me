@@ -11,7 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
-import ru.practicum.ewm.event.storage.EventStorage;
+import ru.practicum.ewm.event.storage.EventRepository;
 import ru.practicum.ewm.exception.EventNotFoundException;
 import ru.practicum.ewm.exception.OperationConditionsFailureException;
 import ru.practicum.ewm.exception.ParticipationRequestAlreadyExistsException;
@@ -23,9 +23,9 @@ import ru.practicum.ewm.participationrequest.model.dto.ParticipationRequestDto;
 import ru.practicum.ewm.participationrequest.model.dto.ParticipationRequestStatusUpdateRequest;
 import ru.practicum.ewm.participationrequest.model.dto.ParticipationRequestStatusUpdateResult;
 import ru.practicum.ewm.participationrequest.service.ParticipationRequestServiceImpl;
-import ru.practicum.ewm.participationrequest.storage.ParticipationRequestStorage;
+import ru.practicum.ewm.participationrequest.storage.ParticipationRequestRepository;
 import ru.practicum.ewm.user.model.User;
-import ru.practicum.ewm.user.storage.UserStorage;
+import ru.practicum.ewm.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,11 +42,11 @@ import static ru.practicum.ewm.participationrequest.model.dto.ParticipationReque
 @ExtendWith(MockitoExtension.class)
 public class ParticipationRequestServiceTest {
     @Mock
-    private ParticipationRequestStorage requestStorage;
+    private ParticipationRequestRepository requestStorage;
     @Mock
-    private UserStorage userStorage;
+    private UserRepository userRepository;
     @Mock
-    private EventStorage eventStorage;
+    private EventRepository eventRepository;
     @InjectMocks
     private ParticipationRequestServiceImpl requestService;
 
@@ -75,8 +75,7 @@ public class ParticipationRequestServiceTest {
                 "title",
                 LocalDateTime.now().minusDays(1),
                 EventState.PUBLISHED,
-                LocalDateTime.now().minusHours(1),
-                null
+                LocalDateTime.now().minusHours(1)
         );
         request = new ParticipationRequest(
                 1,
@@ -94,10 +93,13 @@ public class ParticipationRequestServiceTest {
     @Test
     public void shouldGetParticipationRequestsByEventInitiator() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(requestStorage.findByEventInitiatorId(anyInt()))
+                .when(eventRepository.existsById(anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(requestStorage.findByEventIdAndEventInitiatorId(anyInt(), anyInt()))
                 .thenReturn(List.of(request));
 
         List<ParticipationRequestDto> requests =
@@ -114,7 +116,7 @@ public class ParticipationRequestServiceTest {
     @Test
     public void shouldNotGetParticipationRequestsByEventInitiatorWhenUserNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(false);
 
         UserNotFoundException e = Assertions.assertThrows(
@@ -129,12 +131,32 @@ public class ParticipationRequestServiceTest {
     }
 
     @Test
-    public void shouldUpdateParticipationRequests() {
+    public void shouldNotGetParticipationRequestsByEventInitiatorWhenEventNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.existsById(anyInt()))
+                .thenReturn(false);
+
+        EventNotFoundException e = Assertions.assertThrows(
+                EventNotFoundException.class,
+                () -> requestService.getParticipationRequestsByEventInitiator(initiator.getId(), event.getId())
+        );
+
+        assertThat(
+                e.getMessage(),
+                equalTo("Событие с id=1 не найдено")
+        );
+    }
+
+    @Test
+    public void shouldUpdateParticipationRequests() {
+        Mockito
+                .when(userRepository.existsById(anyInt()))
+                .thenReturn(true);
+        Mockito
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
                 .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
@@ -164,7 +186,7 @@ public class ParticipationRequestServiceTest {
     @Test
     public void shouldNotUpdateParticipationRequestsWhenUserNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(false);
 
         UserNotFoundException e = Assertions.assertThrows(
@@ -181,10 +203,10 @@ public class ParticipationRequestServiceTest {
     @Test
     public void shouldNotUpdateParticipationRequestsWhenEventNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         EventNotFoundException e = Assertions.assertThrows(
@@ -198,10 +220,10 @@ public class ParticipationRequestServiceTest {
     @Test
     public void shouldNotUpdateParticipationRequestsWhenNotInitiator() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
 
         OperationConditionsFailureException e = Assertions.assertThrows(
@@ -216,10 +238,10 @@ public class ParticipationRequestServiceTest {
     public void shouldNotUpdateParticipationRequestsWhenRequireModerationFalse() {
         event.setRequestModeration(false);
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
 
         OperationConditionsFailureException e = Assertions.assertThrows(
@@ -233,10 +255,10 @@ public class ParticipationRequestServiceTest {
     @Test
     public void shouldNotUpdateParticipationRequestsWhenLimitReached() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
                 .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
@@ -257,10 +279,10 @@ public class ParticipationRequestServiceTest {
                 ParticipationRequestStatus.CANCELED
         );
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
                 .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
@@ -284,7 +306,7 @@ public class ParticipationRequestServiceTest {
     @Test
     public void shouldGetParticipationRequestsByRequester() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
                 .when(requestStorage.findByRequesterId(anyInt()))
@@ -303,7 +325,7 @@ public class ParticipationRequestServiceTest {
     @Test
     public void shouldNotGetParticipationRequestsByRequesterWhenUserNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(false);
 
         UserNotFoundException e = Assertions.assertThrows(
@@ -323,10 +345,10 @@ public class ParticipationRequestServiceTest {
                 .when(requestStorage.existsByRequesterIdAndEventId(anyInt(), anyInt()))
                 .thenReturn(false);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(userStorage.findById(anyInt()))
+                .when(userRepository.findById(anyInt()))
                 .thenReturn(Optional.of(requester));
         Mockito
                 .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
@@ -365,7 +387,7 @@ public class ParticipationRequestServiceTest {
                 .when(requestStorage.existsByRequesterIdAndEventId(anyInt(), anyInt()))
                 .thenReturn(false);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         EventNotFoundException e = Assertions.assertThrows(
@@ -382,10 +404,10 @@ public class ParticipationRequestServiceTest {
                 .when(requestStorage.existsByRequesterIdAndEventId(anyInt(), anyInt()))
                 .thenReturn(false);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(userStorage.findById(anyInt()))
+                .when(userRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         UserNotFoundException e = Assertions.assertThrows(
@@ -405,10 +427,10 @@ public class ParticipationRequestServiceTest {
                 .when(requestStorage.existsByRequesterIdAndEventId(anyInt(), anyInt()))
                 .thenReturn(false);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(userStorage.findById(anyInt()))
+                .when(userRepository.findById(anyInt()))
                 .thenReturn(Optional.of(initiator));
 
         OperationConditionsFailureException e = Assertions.assertThrows(
@@ -429,10 +451,10 @@ public class ParticipationRequestServiceTest {
                 .when(requestStorage.existsByRequesterIdAndEventId(anyInt(), anyInt()))
                 .thenReturn(false);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(userStorage.findById(anyInt()))
+                .when(userRepository.findById(anyInt()))
                 .thenReturn(Optional.of(requester));
 
         OperationConditionsFailureException e = Assertions.assertThrows(
@@ -452,10 +474,10 @@ public class ParticipationRequestServiceTest {
                 .when(requestStorage.existsByRequesterIdAndEventId(anyInt(), anyInt()))
                 .thenReturn(false);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(userStorage.findById(anyInt()))
+                .when(userRepository.findById(anyInt()))
                 .thenReturn(Optional.of(requester));
         Mockito
                 .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))

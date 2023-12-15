@@ -29,10 +29,10 @@ public class ParticipationRequest {
     private Integer id;
     private LocalDateTime created;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event")
+    @JoinColumn(name = "event_id")
     private Event event;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester")
+    @JoinColumn(name = "requester_id")
     private User requester;
     @Enumerated(EnumType.STRING)
     private ParticipationRequestStatus status;

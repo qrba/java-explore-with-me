@@ -6,10 +6,10 @@ import ru.practicum.ewm.participationrequest.model.ParticipationRequestStatus;
 
 import java.util.List;
 
-public interface ParticipationRequestStorage extends JpaRepository<ParticipationRequest, Integer> {
+public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Integer> {
     List<ParticipationRequest> findByRequesterId(Integer requesterId);
 
-    List<ParticipationRequest> findByEventInitiatorId(Integer initiatorId);
+    List<ParticipationRequest> findByEventIdAndEventInitiatorId(Integer eventId, Integer initiatorId);
 
     List<ParticipationRequest> findByIdInAndStatusAndEventId(
             List<Integer> ids,

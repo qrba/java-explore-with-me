@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.validator.constraints.Length;
 import ru.practicum.ewm.event.model.Event;
 
 import javax.persistence.Column;
@@ -30,15 +29,14 @@ public class Compilation {
     private Integer id;
     private Boolean pinned;
     @Column(unique = true)
-    @Length(min = 1, max = 50)
     private String title;
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToMany
     @JoinTable(
             name = "compilations_events",
-            joinColumns = @JoinColumn(name = "compilation"),
-            inverseJoinColumns = @JoinColumn(name = "event")
+            joinColumns = @JoinColumn(name = "compilation_id"),
+            inverseJoinColumns = @JoinColumn(name = "event_id")
     )
     private Set<Event> events;
 }

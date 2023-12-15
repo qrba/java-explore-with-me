@@ -16,6 +16,8 @@ import ru.practicum.ewm.user.model.dto.UserDto;
 import ru.practicum.ewm.user.service.UserService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -27,8 +29,8 @@ public class UserControllerAdmin {
     @GetMapping
     public List<UserDto> getUsers(
             @RequestParam(required = false) List<Integer> ids,
-            @RequestParam(defaultValue = "0") Integer from,
-            @RequestParam(defaultValue = "10") Integer size
+            @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+            @Positive @RequestParam(defaultValue = "10") Integer size
     ) {
         return userService.getUsers(ids, from, size);
     }

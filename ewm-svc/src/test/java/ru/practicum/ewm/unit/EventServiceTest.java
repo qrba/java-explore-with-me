@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import ru.practicum.ewm.category.model.Category;
-import ru.practicum.ewm.category.storage.CategoryStorage;
+import ru.practicum.ewm.category.storage.CategoryRepository;
 import ru.practicum.ewm.client.StatsClient;
 import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.event.model.ActionState;
@@ -26,16 +26,16 @@ import ru.practicum.ewm.event.model.dto.NewEventDto;
 import ru.practicum.ewm.event.model.dto.UpdateEventAdminRequest;
 import ru.practicum.ewm.event.model.dto.UpdateEventUserRequest;
 import ru.practicum.ewm.event.service.EventServiceImpl;
-import ru.practicum.ewm.event.storage.EventStorage;
+import ru.practicum.ewm.event.storage.EventRepository;
 import ru.practicum.ewm.exception.CategoryNotFoundException;
 import ru.practicum.ewm.exception.EventDateException;
 import ru.practicum.ewm.exception.EventNotFoundException;
 import ru.practicum.ewm.exception.OperationConditionsFailureException;
 import ru.practicum.ewm.exception.UserNotFoundException;
 import ru.practicum.ewm.participationrequest.model.ParticipationRequestStatus;
-import ru.practicum.ewm.participationrequest.storage.ParticipationRequestStorage;
+import ru.practicum.ewm.participationrequest.storage.ParticipationRequestRepository;
 import ru.practicum.ewm.user.model.User;
-import ru.practicum.ewm.user.storage.UserStorage;
+import ru.practicum.ewm.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -56,13 +56,13 @@ import static ru.practicum.ewm.event.model.dto.EventMapper.eventToShortDto;
 @ExtendWith(MockitoExtension.class)
 public class EventServiceTest {
     @Mock
-    private EventStorage eventStorage;
+    private EventRepository eventRepository;
     @Mock
-    private CategoryStorage categoryStorage;
+    private CategoryRepository categoryRepository;
     @Mock
-    private UserStorage userStorage;
+    private UserRepository userRepository;
     @Mock
-    private ParticipationRequestStorage requestStorage;
+    private ParticipationRequestRepository requestStorage;
     @Mock
     private StatsClient statsClient;
     @InjectMocks
@@ -93,8 +93,7 @@ public class EventServiceTest {
                 "title",
                 LocalDateTime.now().minusDays(1),
                 EventState.PUBLISHED,
-                LocalDateTime.now().minusHours(1),
-                null
+                LocalDateTime.now().minusHours(1)
         );
         newEventDto = new NewEventDto(
                 event.getAnnotation(),
@@ -102,9 +101,9 @@ public class EventServiceTest {
                 event.getDescription(),
                 event.getEventDate(),
                 new Location(event.getLat(), event.getLon()),
-                event.getPaid(),
+                event.isPaid(),
                 event.getParticipantLimit(),
-                event.getRequestModeration(),
+                event.isRequestModeration(),
                 event.getTitle()
         );
         updateUserRequest = new UpdateEventUserRequest(
@@ -113,9 +112,9 @@ public class EventServiceTest {
                 event.getDescription(),
                 event.getEventDate(),
                 new Location(event.getLat(), event.getLon()),
-                event.getPaid(),
+                event.isPaid(),
                 event.getParticipantLimit(),
-                event.getRequestModeration(),
+                event.isRequestModeration(),
                 event.getTitle(),
                 ActionState.SEND_TO_REVIEW
         );
@@ -125,9 +124,9 @@ public class EventServiceTest {
                 event.getDescription(),
                 event.getEventDate(),
                 new Location(event.getLat(), event.getLon()),
-                event.getPaid(),
+                event.isPaid(),
                 event.getParticipantLimit(),
-                event.getRequestModeration(),
+                event.isRequestModeration(),
                 event.getTitle(),
                 ActionState.PUBLISH_EVENT
         );
@@ -137,7 +136,7 @@ public class EventServiceTest {
     public void shouldGetEventById() {
         request.setRemoteAddr("127.0.0.1");
         Mockito
-                .when(eventStorage.findByIdAndState(anyInt(), any(EventState.class)))
+                .when(eventRepository.findByIdAndState(anyInt(), any(EventState.class)))
                 .thenReturn(Optional.of(event));
         Mockito
                 .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
@@ -149,7 +148,7 @@ public class EventServiceTest {
                 .when(statsClient.addHit(any(EndpointHitDto.class)))
                 .thenReturn(ResponseEntity.ok().build());
         EventFullDto eventFullDtoFromService = eventService.getEventById(1, request);
-        EventFullDto eventFullDto = eventToFullDto(event, 0, 0);
+        EventFullDto eventFullDto = eventToFullDto(event, 0, 0L);
 
         assertThat(eventFullDto, equalTo(eventFullDtoFromService));
     }
@@ -157,7 +156,7 @@ public class EventServiceTest {
     @Test
     public void shouldNotGetEventByIdWhenEventNotFound() {
         Mockito
-                .when(eventStorage.findByIdAndState(anyInt(), any(EventState.class)))
+                .when(eventRepository.findByIdAndState(anyInt(), any(EventState.class)))
                 .thenReturn(Optional.empty());
 
         EventNotFoundException e = Assertions.assertThrows(
@@ -172,7 +171,7 @@ public class EventServiceTest {
     public void shouldGetEvents() {
         request.setRemoteAddr("127.0.0.1");
         Mockito
-                .when(eventStorage.findEventsPublic(anyString(), anyList(), anyBoolean(), any(LocalDateTime.class),
+                .when(eventRepository.findEventsPublic(anyString(), anyList(), anyBoolean(), any(LocalDateTime.class),
                         any(LocalDateTime.class), anyBoolean(), any(Pageable.class)))
                 .thenReturn(List.of(event));
         Mockito
@@ -191,7 +190,7 @@ public class EventServiceTest {
 
         assertThat(events.size(), equalTo(1));
 
-        EventShortDto eventShortDto = eventToShortDto(event, 0, 0);
+        EventShortDto eventShortDto = eventToShortDto(event, 0, 0L);
         EventShortDto eventShortDtoFromService = events.get(0);
 
         assertThat(eventShortDto, equalTo(eventShortDtoFromService));
@@ -211,17 +210,17 @@ public class EventServiceTest {
     @Test
     public void shouldAddEvent() {
         Mockito
-                .when(userStorage.findById(anyInt()))
+                .when(userRepository.findById(anyInt()))
                 .thenReturn(Optional.of(user));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
         Mockito
-                .when(eventStorage.save(any(Event.class)))
+                .when(eventRepository.save(any(Event.class)))
                 .thenReturn(event);
 
         EventFullDto eventFullDtoFromService = eventService.addEvent(1, newEventDto);
-        EventFullDto eventFullDto = eventToFullDto(event, 0, 0);
+        EventFullDto eventFullDto = eventToFullDto(event, 0, 0L);
 
         assertThat(eventFullDto, equalTo(eventFullDtoFromService));
     }
@@ -234,9 +233,9 @@ public class EventServiceTest {
                 event.getDescription(),
                 LocalDateTime.now(),
                 new Location(event.getLat(), event.getLon()),
-                event.getPaid(),
+                event.isPaid(),
                 event.getParticipantLimit(),
-                event.getRequestModeration(),
+                event.isRequestModeration(),
                 event.getTitle()
         );
 
@@ -254,7 +253,7 @@ public class EventServiceTest {
     @Test
     public void shouldNotAddEventWhenUserNotFound() {
         Mockito
-                .when(userStorage.findById(anyInt()))
+                .when(userRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
         UserNotFoundException e = Assertions.assertThrows(
                 UserNotFoundException.class,
@@ -270,10 +269,10 @@ public class EventServiceTest {
     @Test
     public void shouldNotAddEventWhenCategoryNotFound() {
         Mockito
-                .when(userStorage.findById(anyInt()))
+                .when(userRepository.findById(anyInt()))
                 .thenReturn(Optional.of(user));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
         CategoryNotFoundException e = Assertions.assertThrows(
                 CategoryNotFoundException.class,
@@ -291,20 +290,20 @@ public class EventServiceTest {
         event.setState(EventState.PENDING);
         event.setPublishedOn(null);
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByIdAndInitiatorId(anyInt(), anyInt()))
+                .when(eventRepository.findByIdAndInitiatorId(anyInt(), anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
         Mockito
-                .when(eventStorage.save(any(Event.class)))
+                .when(eventRepository.save(any(Event.class)))
                 .then(returnsFirstArg());
 
         EventFullDto eventFullDtoFromService = eventService.updateEventByInitiator(1, 1, updateUserRequest);
-        EventFullDto eventFullDto = eventToFullDto(event, 0, 0);
+        EventFullDto eventFullDto = eventToFullDto(event, 0, 0L);
 
         assertThat(eventFullDto, equalTo(eventFullDtoFromService));
     }
@@ -312,7 +311,7 @@ public class EventServiceTest {
     @Test
     public void shouldNotUpdateEventByInitiatorWhenUserNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(false);
 
         UserNotFoundException e = Assertions.assertThrows(
@@ -329,10 +328,10 @@ public class EventServiceTest {
     @Test
     public void shouldNotUpdateEventByInitiatorWhenEventNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByIdAndInitiatorId(anyInt(), anyInt()))
+                .when(eventRepository.findByIdAndInitiatorId(anyInt(), anyInt()))
                 .thenReturn(Optional.empty());
 
         EventNotFoundException e = Assertions.assertThrows(
@@ -346,10 +345,10 @@ public class EventServiceTest {
     @Test
     public void shouldNotUpdateEventByInitiatorWhenEventPublished() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByIdAndInitiatorId(anyInt(), anyInt()))
+                .when(eventRepository.findByIdAndInitiatorId(anyInt(), anyInt()))
                 .thenReturn(Optional.of(event));
 
         OperationConditionsFailureException e = Assertions.assertThrows(
@@ -368,21 +367,21 @@ public class EventServiceTest {
                 event.getDescription(),
                 LocalDateTime.now().minusDays(1),
                 new Location(event.getLat(), event.getLon()),
-                event.getPaid(),
+                event.isPaid(),
                 event.getParticipantLimit(),
-                event.getRequestModeration(),
+                event.isRequestModeration(),
                 event.getTitle(),
                 ActionState.SEND_TO_REVIEW
         );
         event.setState(EventState.PENDING);
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByIdAndInitiatorId(anyInt(), anyInt()))
+                .when(eventRepository.findByIdAndInitiatorId(anyInt(), anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
 
         EventDateException e = Assertions.assertThrows(
@@ -404,21 +403,21 @@ public class EventServiceTest {
                 event.getDescription(),
                 event.getEventDate(),
                 new Location(event.getLat(), event.getLon()),
-                event.getPaid(),
+                event.isPaid(),
                 event.getParticipantLimit(),
-                event.getRequestModeration(),
+                event.isRequestModeration(),
                 event.getTitle(),
                 ActionState.PUBLISH_EVENT
         );
         event.setState(EventState.PENDING);
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByIdAndInitiatorId(anyInt(), anyInt()))
+                .when(eventRepository.findByIdAndInitiatorId(anyInt(), anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
 
         OperationConditionsFailureException e = Assertions.assertThrows(
@@ -434,13 +433,13 @@ public class EventServiceTest {
     public void shouldNotUpdateEventByInitiatorWhenCategoryNotFound() {
         event.setState(EventState.PENDING);
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByIdAndInitiatorId(anyInt(), anyInt()))
+                .when(eventRepository.findByIdAndInitiatorId(anyInt(), anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         CategoryNotFoundException e = Assertions.assertThrows(
@@ -457,10 +456,10 @@ public class EventServiceTest {
     @Test
     public void shouldGetEventsByInitiatorId() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByInitiatorId(anyInt(), any(Pageable.class)))
+                .when(eventRepository.findByInitiatorId(anyInt(), any(Pageable.class)))
                 .thenReturn(List.of(event));
         Mockito
                 .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
@@ -473,7 +472,7 @@ public class EventServiceTest {
 
         assertThat(events.size(), equalTo(1));
 
-        EventShortDto eventShortDto = eventToShortDto(event, 0, 0);
+        EventShortDto eventShortDto = eventToShortDto(event, 0, 0L);
         EventShortDto eventShortDtoFromService = events.get(0);
 
         assertThat(eventShortDto, equalTo(eventShortDtoFromService));
@@ -482,7 +481,7 @@ public class EventServiceTest {
     @Test
     public void shouldNotGetEventsByInitiatorIdWhenUserNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(false);
 
         UserNotFoundException e = Assertions.assertThrows(
@@ -499,10 +498,10 @@ public class EventServiceTest {
     @Test
     public void shouldGetEventByIdAndInitiatorId() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByIdAndInitiatorId(anyInt(), anyInt()))
+                .when(eventRepository.findByIdAndInitiatorId(anyInt(), anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
                 .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
@@ -512,7 +511,7 @@ public class EventServiceTest {
                 .thenReturn(ResponseEntity.ok().body(Collections.emptyList()));
 
         EventFullDto eventFullDtoFromService = eventService.getEventByIdAndInitiatorId(1, 1);
-        EventFullDto eventFullDto = eventToFullDto(event, 0, 0);
+        EventFullDto eventFullDto = eventToFullDto(event, 0, 0L);
 
         assertThat(eventFullDto, equalTo(eventFullDtoFromService));
     }
@@ -520,7 +519,7 @@ public class EventServiceTest {
     @Test
     public void shouldNotGetEventByIdAndInitiatorIdWhenUserNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(false);
 
         UserNotFoundException e = Assertions.assertThrows(
@@ -537,10 +536,10 @@ public class EventServiceTest {
     @Test
     public void shouldNotGetEventByIdAndInitiatorIdWhenEventNotFound() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         Mockito
-                .when(eventStorage.findByIdAndInitiatorId(anyInt(), anyInt()))
+                .when(eventRepository.findByIdAndInitiatorId(anyInt(), anyInt()))
                 .thenReturn(Optional.empty());
 
         EventNotFoundException e = Assertions.assertThrows(
@@ -554,7 +553,7 @@ public class EventServiceTest {
     @Test
     public void shouldGetEventsByAdmin() {
         Mockito
-                .when(eventStorage.findEventsAdmin(anyList(), anyList(), anyList(),
+                .when(eventRepository.findEventsAdmin(anyList(), anyList(), anyList(),
                         any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class)))
                 .thenReturn(List.of(event));
         Mockito
@@ -570,7 +569,7 @@ public class EventServiceTest {
 
         assertThat(events.size(), equalTo(1));
 
-        EventFullDto eventFullDto = eventToFullDto(event, 0, 0);
+        EventFullDto eventFullDto = eventToFullDto(event, 0, 0L);
         EventFullDto eventFullDtoFromService = events.get(0);
 
         assertThat(eventFullDto, equalTo(eventFullDtoFromService));
@@ -594,17 +593,17 @@ public class EventServiceTest {
     public void shouldUpdateEventByAdmin() {
         event.setState(EventState.PENDING);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
         Mockito
-                .when(eventStorage.save(any(Event.class)))
+                .when(eventRepository.save(any(Event.class)))
                 .then(returnsFirstArg());
 
         EventFullDto eventFullDtoFromService = eventService.updateEventByAdmin(1, updateAdminRequest);
-        EventFullDto eventFullDto = eventToFullDto(event, 0, 0);
+        EventFullDto eventFullDto = eventToFullDto(event, 0, 0L);
 
         assertThat(eventFullDto, equalTo(eventFullDtoFromService));
     }
@@ -612,7 +611,7 @@ public class EventServiceTest {
     @Test
     public void shouldNotUpdateEventByAdminWhenEventNotFound() {
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         EventNotFoundException e = Assertions.assertThrows(
@@ -629,7 +628,7 @@ public class EventServiceTest {
     @Test
     public void shouldNotUpdateEventByAdminWhenStateNotPending() {
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
 
         OperationConditionsFailureException e = Assertions.assertThrows(
@@ -652,17 +651,17 @@ public class EventServiceTest {
                 event.getDescription(),
                 LocalDateTime.now(),
                 new Location(event.getLat(), event.getLon()),
-                event.getPaid(),
+                event.isPaid(),
                 event.getParticipantLimit(),
-                event.getRequestModeration(),
+                event.isRequestModeration(),
                 event.getTitle(),
                 ActionState.PUBLISH_EVENT
         );
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
 
         EventDateException e = Assertions.assertThrows(
@@ -685,17 +684,17 @@ public class EventServiceTest {
                 event.getDescription(),
                 event.getEventDate(),
                 new Location(event.getLat(), event.getLon()),
-                event.getPaid(),
+                event.isPaid(),
                 event.getParticipantLimit(),
-                event.getRequestModeration(),
+                event.isRequestModeration(),
                 event.getTitle(),
                 ActionState.SEND_TO_REVIEW
         );
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.of(category));
 
         OperationConditionsFailureException e = Assertions.assertThrows(
@@ -713,10 +712,10 @@ public class EventServiceTest {
     public void shouldNotUpdateEventByAdminWhenCategoryNotFound() {
         event.setState(EventState.PENDING);
         Mockito
-                .when(eventStorage.findById(anyInt()))
+                .when(eventRepository.findById(anyInt()))
                 .thenReturn(Optional.of(event));
         Mockito
-                .when(categoryStorage.findById(anyInt()))
+                .when(categoryRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         CategoryNotFoundException e = Assertions.assertThrows(

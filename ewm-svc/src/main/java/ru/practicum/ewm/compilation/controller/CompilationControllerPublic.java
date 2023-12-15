@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.ewm.compilation.model.dto.CompilationDto;
 import ru.practicum.ewm.compilation.service.CompilationService;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -20,8 +22,8 @@ public class CompilationControllerPublic {
     @GetMapping
     public List<CompilationDto> getCompilations(
             @RequestParam(required = false) Boolean pinned,
-            @RequestParam(defaultValue = "0") Integer from,
-            @RequestParam(defaultValue = "10") Integer size
+            @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+            @Positive @RequestParam(defaultValue = "10") Integer size
     ) {
         return compilationService.getCompilations(pinned, from, size);
     }

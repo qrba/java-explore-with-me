@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
-import ru.practicum.ewm.event.storage.EventStorage;
+import ru.practicum.ewm.event.storage.EventRepository;
 import ru.practicum.ewm.exception.EventNotFoundException;
 import ru.practicum.ewm.exception.OperationConditionsFailureException;
 import ru.practicum.ewm.exception.ParticipationRequestAlreadyExistsException;
@@ -18,14 +18,13 @@ import ru.practicum.ewm.participationrequest.model.dto.ParticipationRequestDto;
 import ru.practicum.ewm.participationrequest.model.dto.ParticipationRequestMapper;
 import ru.practicum.ewm.participationrequest.model.dto.ParticipationRequestStatusUpdateRequest;
 import ru.practicum.ewm.participationrequest.model.dto.ParticipationRequestStatusUpdateResult;
-import ru.practicum.ewm.participationrequest.storage.ParticipationRequestStorage;
+import ru.practicum.ewm.participationrequest.storage.ParticipationRequestRepository;
 import ru.practicum.ewm.user.model.User;
-import ru.practicum.ewm.user.storage.UserStorage;
+import ru.practicum.ewm.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.participationrequest.model.dto.ParticipationRequestMapper.participationRequestToDto;
@@ -33,10 +32,11 @@ import static ru.practicum.ewm.participationrequest.model.dto.ParticipationReque
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@Transactional
 public class ParticipationRequestServiceImpl implements ParticipationRequestService {
-    private final ParticipationRequestStorage requestStorage;
-    private final UserStorage userStorage;
-    private final EventStorage eventStorage;
+    private final ParticipationRequestRepository requestStorage;
+    private final UserRepository userRepository;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -44,32 +44,32 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             Integer initiatorId,
             Integer eventId
     ) {
-        if (!userStorage.existsById(initiatorId))
+        if (!userRepository.existsById(initiatorId))
             throw new UserNotFoundException("Пользователь с id=" + initiatorId + " не найден");
+        if (!eventRepository.existsById(eventId))
+            throw new EventNotFoundException("Событие с id=" + eventId + " не найдено");
         log.info("Инициатором с id=" + initiatorId + " события с id=" + eventId + " запрошены заявки на участие");
-        return requestStorage.findByEventInitiatorId(initiatorId).stream()
+        return requestStorage.findByEventIdAndEventInitiatorId(eventId, initiatorId).stream()
                 .map(ParticipationRequestMapper::participationRequestToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @Transactional
     public ParticipationRequestStatusUpdateResult updateParticipationRequests(
             Integer initiatorId,
             Integer eventId,
             ParticipationRequestStatusUpdateRequest updateRequest
     ) {
-        if (!userStorage.existsById(initiatorId))
+        if (!userRepository.existsById(initiatorId))
             throw new UserNotFoundException("Пользователь с id=" + initiatorId + " не найден");
-        Optional<Event> eventOptional = eventStorage.findById(eventId);
-        if (eventOptional.isEmpty()) throw new EventNotFoundException("Событие с id=" + eventId + " не найдено");
-        Event event = eventOptional.get();
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Событие с id=" + eventId + " не найдено"));
         if (!event.getInitiator().getId().equals(initiatorId))
             throw new OperationConditionsFailureException(
                     "Пользователь с id=" + initiatorId +
                             " не является инициатором события с id=" + eventId
             );
-        if (!event.getRequestModeration()) throw new OperationConditionsFailureException(
+        if (!event.isRequestModeration()) throw new OperationConditionsFailureException(
                 "Для события с id=" + eventId + " одобрение заявок не требуется"
         );
         int limit = event.getParticipantLimit();
@@ -117,7 +117,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     @Override
     @Transactional(readOnly = true)
     public List<ParticipationRequestDto> getParticipationRequestsByRequester(Integer requesterId) {
-        if (!userStorage.existsById(requesterId))
+        if (!userRepository.existsById(requesterId))
             throw new UserNotFoundException("Пользователь с id=" + requesterId + " не найден");
         log.info("Пользователем с id=" + requesterId + " запрошены его заявки на участие");
         return requestStorage.findByRequesterId(requesterId).stream()
@@ -126,21 +126,16 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     }
 
     @Override
-    @Transactional
     public ParticipationRequestDto addParticipationRequest(Integer requesterId, Integer eventId) {
         if (requestStorage.existsByRequesterIdAndEventId(requesterId, eventId))
             throw new ParticipationRequestAlreadyExistsException(
                     "Запрос на участие пользователя с id=" + requesterId +
                             " в событии с id=" + eventId + " уже существует"
             );
-        Optional<Event> eventOptional = eventStorage.findById(eventId);
-        if (eventOptional.isEmpty())
-            throw new EventNotFoundException("Событие с id=" + eventId + " не найдено");
-        Event event = eventOptional.get();
-        Optional<User> userOptional = userStorage.findById(requesterId);
-        if (userOptional.isEmpty())
-            throw new UserNotFoundException("Пользователь с id=" + requesterId + " не найден");
-        User user = userOptional.get();
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Событие с id=" + eventId + " не найдено"));
+        User user = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id=" + requesterId + " не найден"));
         if (event.getInitiator().getId().equals(requesterId))
             throw new OperationConditionsFailureException(
                     "Пользователь с id=" + requesterId +
@@ -162,7 +157,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
                     "Пользователь с id=" + requesterId +
                             " отправил запрос на участие в событии с id=" + eventId + " с достигнутым лимитом запросов"
             );
-        ParticipationRequestStatus status = (event.getRequestModeration() && limit > 0)
+        ParticipationRequestStatus status = (event.isRequestModeration() && limit > 0)
                 ? ParticipationRequestStatus.PENDING : ParticipationRequestStatus.CONFIRMED;
         ParticipationRequest request = requestStorage.save(
                 new ParticipationRequest(
@@ -178,12 +173,13 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     }
 
     @Override
-    @Transactional
     public ParticipationRequestDto cancelParticipationRequest(Integer userId, Integer requestId) {
-        Optional<ParticipationRequest> requestOptional = requestStorage.findById(requestId);
-        if (requestOptional.isEmpty())
-            throw new ParticipationRequestNotFoundException("Запрос на участие с id=" + requestId + " не найден");
-        ParticipationRequest request = requestOptional.get();
+        ParticipationRequest request = requestStorage.findById(requestId)
+                .orElseThrow(
+                        () -> new ParticipationRequestNotFoundException(
+                                "Запрос на участие с id=" + requestId + " не найден"
+                        )
+                );
         if (!request.getRequester().getId().equals(userId))
             throw new OperationConditionsFailureException(
                     "Запрос на участие с id=" + requestId + " не принадлежит пользователю с id=" + userId

@@ -14,7 +14,7 @@ import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.model.dto.NewUserRequest;
 import ru.practicum.ewm.user.model.dto.UserDto;
 import ru.practicum.ewm.user.model.dto.UserMapper;
-import ru.practicum.ewm.user.storage.UserStorage;
+import ru.practicum.ewm.user.storage.UserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,8 +24,9 @@ import static ru.practicum.ewm.user.model.dto.UserMapper.userFromNewUserRequest;
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@Transactional
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -33,16 +34,15 @@ public class UserServiceImpl implements UserService {
         log.info("Запрошен список пользователей");
         int page = from / size;
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        return userStorage.findUsers(ids, pageable).stream()
+        return userRepository.findUsers(ids, pageable).stream()
                 .map(UserMapper::userToUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @Transactional
     public UserDto addUser(NewUserRequest newUserRequest) {
         try {
-            User user = userStorage.save(userFromNewUserRequest(newUserRequest));
+            User user = userRepository.save(userFromNewUserRequest(newUserRequest));
             log.info("Добавлен пользователь {}", user);
             return UserMapper.userToUserDto(user);
         } catch (DataIntegrityViolationException e) {
@@ -53,11 +53,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public void deleteUser(int userId) {
-        if (!userStorage.existsById(userId))
+        if (!userRepository.existsById(userId))
             throw new UserNotFoundException("Пользователь с id=" + userId + " не найден");
-        userStorage.deleteById(userId);
+        userRepository.deleteById(userId);
         log.info("Удален пользователь с id={}", userId);
     }
 }

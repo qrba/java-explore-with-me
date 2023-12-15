@@ -15,7 +15,7 @@ import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.model.dto.NewUserRequest;
 import ru.practicum.ewm.user.model.dto.UserDto;
 import ru.practicum.ewm.user.service.UserServiceImpl;
-import ru.practicum.ewm.user.storage.UserStorage;
+import ru.practicum.ewm.user.storage.UserRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +32,7 @@ import static ru.practicum.ewm.user.model.dto.UserMapper.userToUserDto;
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
     @Mock
-    private UserStorage userStorage;
+    private UserRepository userRepository;
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -41,11 +41,11 @@ public class UserServiceTest {
     @Test
     public void shouldAddUser() {
         Mockito
-                .when(userStorage.save(any(User.class)))
+                .when(userRepository.save(any(User.class)))
                 .then(returnsFirstArg());
 
         UserDto userDto = userToUserDto(
-                userStorage.save(
+                userRepository.save(
                         userFromNewUserRequest(
                                 newUserRequest
                         )
@@ -59,7 +59,7 @@ public class UserServiceTest {
     @Test
     public void shouldNotAddUserWhenEmailNotUnique() {
         Mockito
-                .when(userStorage.save(any(User.class)))
+                .when(userRepository.save(any(User.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
         UserAlreadyExistsException e = Assertions.assertThrows(
@@ -73,11 +73,11 @@ public class UserServiceTest {
     @Test
     public void shouldDeleteUser() {
         Mockito
-                .when(userStorage.existsById(anyInt()))
+                .when(userRepository.existsById(anyInt()))
                 .thenReturn(true);
         userService.deleteUser(1);
 
-        Mockito.verify(userStorage).deleteById(anyInt());
+        Mockito.verify(userRepository).deleteById(anyInt());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class UserServiceTest {
     public void shouldGetUsers() {
         User user = new User(1, "user@email.com", "name");
         Mockito
-                .when(userStorage.findUsers(anyList(), any(Pageable.class)))
+                .when(userRepository.findUsers(anyList(), any(Pageable.class)))
                 .thenReturn(List.of(user));
         List<UserDto> userDtoList = userService.getUsers(Collections.emptyList(), 0, 10);
 

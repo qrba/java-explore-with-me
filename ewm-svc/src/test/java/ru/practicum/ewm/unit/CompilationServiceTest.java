@@ -9,21 +9,18 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import ru.practicum.ewm.category.model.Category;
-import ru.practicum.ewm.client.StatsClient;
 import ru.practicum.ewm.compilation.model.Compilation;
 import ru.practicum.ewm.compilation.model.dto.CompilationDto;
 import ru.practicum.ewm.compilation.model.dto.NewCompilationDto;
 import ru.practicum.ewm.compilation.model.dto.UpdateCompilationRequest;
 import ru.practicum.ewm.compilation.service.CompilationServiceImpl;
-import ru.practicum.ewm.compilation.storage.CompilationStorage;
+import ru.practicum.ewm.compilation.storage.CompilationRepository;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
-import ru.practicum.ewm.event.storage.EventStorage;
+import ru.practicum.ewm.event.storage.EventRepository;
 import ru.practicum.ewm.exception.CompilationAlreadyExistsException;
 import ru.practicum.ewm.exception.CompilationNotFoundException;
-import ru.practicum.ewm.participationrequest.storage.ParticipationRequestStorage;
 import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
@@ -44,13 +41,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 @ExtendWith(MockitoExtension.class)
 public class CompilationServiceTest {
     @Mock
-    private CompilationStorage compilationStorage;
+    private CompilationRepository compilationRepository;
     @Mock
-    private EventStorage eventStorage;
-    @Mock
-    private ParticipationRequestStorage requestStorage;
-    @Mock
-    private StatsClient statsClient;
+    private EventRepository eventRepository;
     @InjectMocks
     private CompilationServiceImpl compilationService;
 
@@ -64,7 +57,7 @@ public class CompilationServiceTest {
     @Test
     public void shouldAddCompilation() {
         Mockito
-                .when(compilationStorage.save(any(Compilation.class)))
+                .when(compilationRepository.save(any(Compilation.class)))
                 .then(returnsFirstArg());
 
         CompilationDto compilationDto = compilationService.addCompilation(newCompilationDto);
@@ -76,7 +69,7 @@ public class CompilationServiceTest {
     @Test
     public void shouldNotAddCompilationWhenNameNotUnique() {
         Mockito
-                .when(compilationStorage.save(any(Compilation.class)))
+                .when(compilationRepository.save(any(Compilation.class)))
                 .thenThrow(DataIntegrityViolationException.class);
 
         CompilationAlreadyExistsException e = Assertions.assertThrows(
@@ -90,10 +83,10 @@ public class CompilationServiceTest {
     @Test
     public void shouldDeleteCompilation() {
         Mockito
-                .when(compilationStorage.existsById(anyInt()))
+                .when(compilationRepository.existsById(anyInt()))
                 .thenReturn(true);
         compilationService.deleteCompilation(1);
-        Mockito.verify(compilationStorage).deleteById(anyInt());
+        Mockito.verify(compilationRepository).deleteById(anyInt());
     }
 
     @Test
@@ -109,7 +102,7 @@ public class CompilationServiceTest {
     @Test
     public void shouldGetCompilations() {
         Mockito
-                .when(compilationStorage.findByPinned(anyBoolean(), any(Pageable.class)))
+                .when(compilationRepository.findByPinned(anyBoolean(), any(Pageable.class)))
                 .thenReturn(List.of(compilation));
         List<CompilationDto> compilationDtoList = compilationService.getCompilations(false, 0, 10);
 
@@ -125,7 +118,7 @@ public class CompilationServiceTest {
     @Test
     public void shouldGetCompilationById() {
         Mockito
-                .when(compilationStorage.findById(anyInt()))
+                .when(compilationRepository.findById(anyInt()))
                 .thenReturn(Optional.of(compilation));
 
         CompilationDto compilationDto = compilationService.getCompilationById(1);
@@ -138,7 +131,7 @@ public class CompilationServiceTest {
     @Test
     public void shouldNotGetCompilationByIdWhenCompilationNotFound() {
         Mockito
-                .when(compilationStorage.findById(anyInt()))
+                .when(compilationRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         CompilationNotFoundException e = Assertions.assertThrows(
@@ -166,21 +159,17 @@ public class CompilationServiceTest {
                 "title",
                 LocalDateTime.now().minusDays(1),
                 EventState.PUBLISHED,
-                LocalDateTime.now().minusHours(1),
-                null
+                LocalDateTime.now().minusHours(1)
         );
         Mockito
-                .when(compilationStorage.save(any(Compilation.class)))
+                .when(compilationRepository.save(any(Compilation.class)))
                 .then(returnsFirstArg());
         Mockito
-                .when(compilationStorage.findById(anyInt()))
+                .when(compilationRepository.findById(anyInt()))
                 .thenReturn(Optional.of(compilation));
         Mockito
-                .when(eventStorage.findAllById(anyList()))
+                .when(eventRepository.findAllById(anyList()))
                 .thenReturn(List.of(event));
-        Mockito
-                .when(statsClient.getStats(any(LocalDateTime.class), any(LocalDateTime.class), anyList(), anyBoolean()))
-                .thenReturn(ResponseEntity.ok().build());
         CompilationDto updatedCompilationDto = compilationService.updateCompilation(
                 new UpdateCompilationRequest(true, "new title", List.of(1)),
                 1
@@ -195,7 +184,7 @@ public class CompilationServiceTest {
     @Test
     public void shouldNotUpdateCompilationWhenCompilationNotFound() {
         Mockito
-                .when(compilationStorage.findById(anyInt()))
+                .when(compilationRepository.findById(anyInt()))
                 .thenReturn(Optional.empty());
 
         CompilationNotFoundException e = Assertions.assertThrows(
@@ -209,10 +198,10 @@ public class CompilationServiceTest {
     @Test
     public void shouldNotUpdateCompilationWhenNameNotUnique() {
         Mockito
-                .when(compilationStorage.findById(anyInt()))
+                .when(compilationRepository.findById(anyInt()))
                 .thenReturn(Optional.of(new Compilation(1, false, "other title", new HashSet<>())));
         Mockito
-                .when(compilationStorage.existsByTitle(anyString()))
+                .when(compilationRepository.existsByTitle(anyString()))
                 .thenReturn(true);
 
         CompilationAlreadyExistsException e = Assertions.assertThrows(

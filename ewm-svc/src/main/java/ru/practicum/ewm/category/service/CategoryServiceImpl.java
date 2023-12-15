@@ -12,29 +12,31 @@ import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.model.dto.CategoryDto;
 import ru.practicum.ewm.category.model.dto.CategoryMapper;
 import ru.practicum.ewm.category.model.dto.NewCategoryDto;
-import ru.practicum.ewm.category.storage.CategoryStorage;
+import ru.practicum.ewm.category.storage.CategoryRepository;
+import ru.practicum.ewm.event.storage.EventRepository;
 import ru.practicum.ewm.exception.CategoryAlreadyExistsException;
 import ru.practicum.ewm.exception.CategoryNotFoundException;
 import ru.practicum.ewm.exception.OperationConditionsFailureException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static ru.practicum.ewm.category.model.dto.CategoryMapper.categoryFromNewCategoryDto;
 import static ru.practicum.ewm.category.model.dto.CategoryMapper.categoryToCategoryDto;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
+@Transactional
 public class CategoryServiceImpl implements CategoryService {
-    private final CategoryStorage categoryStorage;
+    private final CategoryRepository categoryRepository;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional(readOnly = true)
     public CategoryDto getCategoryById(Integer catId) {
-        Optional<Category> categoryOptional = categoryStorage.findById(catId);
-        if (categoryOptional.isEmpty()) throw new CategoryNotFoundException("Категория с id=" + catId + " не найдена");
-        Category category = categoryOptional.get();
+        Category category = categoryRepository.findById(catId)
+                .orElseThrow(() -> new CategoryNotFoundException("Категория с id=" + catId + " не найдена"));
         log.info("Запрошена категория {}", category);
         return categoryToCategoryDto(category);
     }
@@ -45,16 +47,15 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Запрошен список категорий");
         int page = from / size;
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        return categoryStorage.findAll(pageable).stream()
+        return categoryRepository.findAll(pageable).stream()
                 .map(CategoryMapper::categoryToCategoryDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @Transactional
     public CategoryDto addCategory(NewCategoryDto newCategoryDto) {
         try {
-            Category category = categoryStorage.save(CategoryMapper.categoryFromNewCategoryDto(newCategoryDto));
+            Category category = categoryRepository.save(categoryFromNewCategoryDto(newCategoryDto));
             log.info("Добавлена категория {}", category);
             return categoryToCategoryDto(category);
         } catch (DataIntegrityViolationException e) {
@@ -65,32 +66,28 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    @Transactional
     public CategoryDto updateCategory(CategoryDto categoryDto) {
         int catId = categoryDto.getId();
-        Optional<Category> categoryOptional = categoryStorage.findById(catId);
-        if (categoryOptional.isEmpty())
-            throw new CategoryNotFoundException("Категория с id=" + catId + " не найдена");
-        Category oldCategory = categoryOptional.get();
-        if (oldCategory.getName().equals(categoryDto.getName())) return categoryToCategoryDto(oldCategory);
-        if (categoryStorage.existsByName(categoryDto.getName()))
+        String name = categoryDto.getName();
+        Category category = categoryRepository.findById(catId)
+                .orElseThrow(() -> new CategoryNotFoundException("Категория с id=" + catId + " не найдена"));
+        if (categoryRepository.existsByNameAndIdNot(name, catId))
             throw new CategoryAlreadyExistsException(
-                    "Категория с названием '" + categoryDto.getName() + "' уже существует"
+                    "Категория с названием '" + name + "' уже существует"
             );
-        Category category = categoryStorage.save(CategoryMapper.categoryFromCategoryDto(categoryDto));
+        category.setName(name);
+        categoryRepository.save(category);
         log.info("Обновлена категория {}", category);
         return categoryToCategoryDto(category);
     }
 
     @Override
     public void deleteCategory(Integer catId) {
-        if (!categoryStorage.existsById(catId))
+        if (!categoryRepository.existsById(catId))
             throw new CategoryNotFoundException("Категория с id=" + catId + " не найдена");
-        try {
-            categoryStorage.deleteById(catId);
-            log.info("Удалена категория с id={}", catId);
-        } catch (DataIntegrityViolationException e) {
+        if (eventRepository.countByCategoryId(catId) > 0)
             throw new OperationConditionsFailureException("Категория с id=" + catId + " не пуста");
-        }
+        categoryRepository.deleteById(catId);
+        log.info("Удалена категория с id={}", catId);
     }
 }
