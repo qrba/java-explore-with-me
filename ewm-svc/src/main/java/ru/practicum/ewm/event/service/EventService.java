@@ -46,4 +46,6 @@ public interface EventService {
     );
 
     EventFullDto updateEventByAdmin(Integer eventId, UpdateEventAdminRequest updateRequest);
+
+    List<EventShortDto> getEventsInPlace(Integer placeId, Integer from, Integer size);
 }

@@ -30,10 +30,13 @@ import ru.practicum.ewm.exception.CategoryNotFoundException;
 import ru.practicum.ewm.exception.EventDateException;
 import ru.practicum.ewm.exception.EventNotFoundException;
 import ru.practicum.ewm.exception.OperationConditionsFailureException;
+import ru.practicum.ewm.exception.PlaceNotFoundException;
 import ru.practicum.ewm.exception.StatsServiceException;
 import ru.practicum.ewm.exception.UserNotFoundException;
 import ru.practicum.ewm.participationrequest.model.ParticipationRequestStatus;
 import ru.practicum.ewm.participationrequest.storage.ParticipationRequestRepository;
+import ru.practicum.ewm.place.model.Place;
+import ru.practicum.ewm.place.storage.PlaceRepository;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.storage.UserRepository;
 
@@ -57,6 +60,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ParticipationRequestRepository requestStorage;
+    private final PlaceRepository placeRepository;
     private final StatsClient statsClient;
 
     @Override
@@ -300,6 +304,29 @@ public class EventServiceImpl implements EventService {
         }
         log.info("Администратором обновлено событие {}", event);
         return eventToFullDto(eventRepository.save(event), 0, 0L);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventShortDto> getEventsInPlace(Integer placeId, Integer from, Integer size) {
+        Place place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new PlaceNotFoundException("Место с id=" + placeId + " не найдено"));
+        log.info("Запрошен список событий по месту с id={}", placeId);
+        return eventRepository.findEventsInPlace(
+                        place.getLat(),
+                        place.getLon(),
+                        place.getRadius(),
+                        from,
+                        size
+                ).stream()
+                .map(
+                        event -> eventToShortDto(
+                                event,
+                                getConfirmed(event),
+                                getViews(event)
+                        )
+                )
+                .collect(Collectors.toList());
     }
 
     private void updateEvent(

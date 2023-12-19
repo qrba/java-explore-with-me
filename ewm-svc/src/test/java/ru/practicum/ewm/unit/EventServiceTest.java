@@ -31,9 +31,12 @@ import ru.practicum.ewm.exception.CategoryNotFoundException;
 import ru.practicum.ewm.exception.EventDateException;
 import ru.practicum.ewm.exception.EventNotFoundException;
 import ru.practicum.ewm.exception.OperationConditionsFailureException;
+import ru.practicum.ewm.exception.PlaceNotFoundException;
 import ru.practicum.ewm.exception.UserNotFoundException;
 import ru.practicum.ewm.participationrequest.model.ParticipationRequestStatus;
 import ru.practicum.ewm.participationrequest.storage.ParticipationRequestRepository;
+import ru.practicum.ewm.place.model.Place;
+import ru.practicum.ewm.place.storage.PlaceRepository;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.storage.UserRepository;
 
@@ -47,6 +50,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -63,6 +67,8 @@ public class EventServiceTest {
     private UserRepository userRepository;
     @Mock
     private ParticipationRequestRepository requestStorage;
+    @Mock
+    private PlaceRepository placeRepository;
     @Mock
     private StatsClient statsClient;
     @InjectMocks
@@ -726,6 +732,56 @@ public class EventServiceTest {
         assertThat(
                 e.getMessage(),
                 equalTo("Категория с id=1 не найдена")
+        );
+    }
+
+    @Test
+    public void shouldGetEventsInPlace() {
+        Place place = new Place(
+                1,
+                "place",
+                "test place description",
+                0,
+                0,
+                1
+        );
+        Mockito
+                .when(placeRepository.findById(anyInt()))
+                .thenReturn(Optional.of(place));
+        Mockito
+                .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
+                .thenReturn(0);
+        Mockito
+                .when(statsClient.getStats(any(LocalDateTime.class), any(LocalDateTime.class), anyList(), anyBoolean()))
+                .thenReturn(ResponseEntity.ok().body(Collections.emptyList()));
+        Mockito
+                .when(eventRepository.findEventsInPlace(anyDouble(), anyDouble(), anyDouble(), anyInt(), anyInt()))
+                .thenReturn(List.of(event));
+
+        List<EventShortDto> events = eventService.getEventsInPlace(1, 0, 10);
+
+        assertThat(events.size(), equalTo(1));
+
+        EventShortDto eventShortDto = eventToShortDto(event, 0, 0L);
+        EventShortDto eventShortDtoFromService = events.get(0);
+
+        assertThat(eventShortDto, equalTo(eventShortDtoFromService));
+    }
+
+    @Test
+    public void shouldNotGetEventsInPlaceWhenPlaceNotFound() {
+        Mockito
+                .when(placeRepository.findById(anyInt()))
+                .thenReturn(Optional.empty());
+
+        PlaceNotFoundException e = Assertions.assertThrows(
+                PlaceNotFoundException.class,
+                () -> eventService.getEventsInPlace(1, 0, 10)
+        );
+
+        assertThat(
+                e.getMessage(),
+                equalTo("Место с id=1 не найдено")
         );
     }
 }
