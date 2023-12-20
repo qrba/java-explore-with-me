@@ -1,9 +1,10 @@
 package ru.practicum.ewm.event.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.practicum.ewm.event.model.Location;
+import ru.practicum.ewm.event.model.Coordinate;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -25,8 +26,9 @@ public class NewEventDto {
     @NotNull(message = "Для события должны быть указаны дата и время начала")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private final LocalDateTime eventDate;
-    @NotNull(message = "Для события должна быть указана локация проведения")
-    private final Location location;
+    @JsonProperty("location")
+    @NotNull(message = "Для события должны быть указаны координаты места проведения")
+    private final Coordinate coordinate;
     private boolean paid;
     @PositiveOrZero
     private int participantLimit;

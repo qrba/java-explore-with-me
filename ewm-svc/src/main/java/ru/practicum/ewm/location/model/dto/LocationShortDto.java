@@ -1,9 +1,9 @@
-package ru.practicum.ewm.place.model.dto;
+package ru.practicum.ewm.location.model.dto;
 
 import lombok.Data;
 
 @Data
-public class PlaceShortDto {
+public class LocationShortDto {
     private final int id;
     private final String name;
 }

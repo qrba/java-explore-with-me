@@ -31,7 +31,7 @@ public class ErrorHandler {
 
     @ExceptionHandler({CategoryAlreadyExistsException.class, UserAlreadyExistsException.class,
             ParticipationRequestAlreadyExistsException.class, CompilationAlreadyExistsException.class,
-            PlaceAlreadyExistsException.class})
+            LocationAlreadyExistsException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleDataIntegrityViolationException(RuntimeException e) {
         log.error(e.getMessage());
@@ -59,7 +59,7 @@ public class ErrorHandler {
 
     @ExceptionHandler({CategoryNotFoundException.class, UserNotFoundException.class, EventNotFoundException.class,
             ParticipationRequestNotFoundException.class, CompilationNotFoundException.class,
-            PlaceNotFoundException.class})
+            LocationNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundException(RuntimeException e) {
         log.error(e.getMessage());

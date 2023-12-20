@@ -1,4 +1,4 @@
-package ru.practicum.ewm.place.controller;
+package ru.practicum.ewm.location.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,41 +8,41 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.ewm.event.model.dto.EventShortDto;
 import ru.practicum.ewm.event.service.EventService;
-import ru.practicum.ewm.place.model.dto.PlaceFullDto;
-import ru.practicum.ewm.place.model.dto.PlaceShortDto;
-import ru.practicum.ewm.place.service.PlaceService;
+import ru.practicum.ewm.location.model.dto.LocationFullDto;
+import ru.practicum.ewm.location.model.dto.LocationShortDto;
+import ru.practicum.ewm.location.service.LocationService;
 
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
-@RequestMapping("/places")
+@RequestMapping("/locations")
 @RequiredArgsConstructor
-public class PlaceControllerPublic {
-    private final PlaceService placeService;
+public class LocationControllerPublic {
+    private final LocationService locationService;
     private final EventService eventService;
 
-    @GetMapping("/{placeId}")
-    public PlaceFullDto getPlaceById(@PathVariable int placeId) {
-        return placeService.getPlaceById(placeId);
+    @GetMapping("/{locationId}")
+    public LocationFullDto getLocationById(@PathVariable int locationId) {
+        return locationService.getLocationById(locationId);
     }
 
     @GetMapping
-    public List<PlaceShortDto> getPlaces(
+    public List<LocationShortDto> getLocations(
             @RequestParam(required = false) String text,
             @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
             @Positive @RequestParam(defaultValue = "10") Integer size
     ) {
-        return placeService.getPlaces(text, from, size);
+        return locationService.getLocations(text, from, size);
     }
 
-    @GetMapping("/{placeId}/events")
-    public List<EventShortDto> getEventsInPlace(
-            @PathVariable int placeId,
+    @GetMapping("/{locationId}/events")
+    public List<EventShortDto> getEventsInLocation(
+            @PathVariable int locationId,
             @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
             @Positive @RequestParam(defaultValue = "10") Integer size
     ) {
-        return eventService.getEventsInPlace(placeId, from, size);
+        return eventService.getEventsInLocation(locationId, from, size);
     }
 }

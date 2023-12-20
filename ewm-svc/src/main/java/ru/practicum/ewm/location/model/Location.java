@@ -1,4 +1,4 @@
-package ru.practicum.ewm.place.model;
+package ru.practicum.ewm.location.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,8 +14,8 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "places")
-public class Place {
+@Table(name = "locations")
+public class Location {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

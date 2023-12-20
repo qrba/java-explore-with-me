@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ewm.event.controller.EventControllerAdmin;
 import ru.practicum.ewm.event.model.ActionState;
-import ru.practicum.ewm.event.model.Location;
+import ru.practicum.ewm.event.model.Coordinate;
 import ru.practicum.ewm.event.model.dto.UpdateEventAdminRequest;
 import ru.practicum.ewm.event.service.EventService;
 
@@ -58,7 +58,7 @@ public class EventControllerAdminTest {
                 1,
                 "d".repeat(21),
                 LocalDateTime.now().plusDays(1),
-                new Location(0, 0),
+                new Coordinate(0, 0),
                 false,
                 0,
                 false,
@@ -83,7 +83,7 @@ public class EventControllerAdminTest {
                 1,
                 "d".repeat(21),
                 LocalDateTime.now().plusDays(1),
-                new Location(0, 0),
+                new Coordinate(0, 0),
                 false,
                 0,
                 false,
@@ -107,7 +107,7 @@ public class EventControllerAdminTest {
                 1,
                 "d".repeat(21),
                 LocalDateTime.now().plusDays(1),
-                new Location(0, 0),
+                new Coordinate(0, 0),
                 false,
                 0,
                 false,
@@ -131,7 +131,7 @@ public class EventControllerAdminTest {
                 1,
                 "d".repeat(1),
                 LocalDateTime.now().plusDays(1),
-                new Location(0, 0),
+                new Coordinate(0, 0),
                 false,
                 0,
                 false,
@@ -155,7 +155,7 @@ public class EventControllerAdminTest {
                 1,
                 "d".repeat(7001),
                 LocalDateTime.now().plusDays(1),
-                new Location(0, 0),
+                new Coordinate(0, 0),
                 false,
                 0,
                 false,
@@ -179,7 +179,7 @@ public class EventControllerAdminTest {
                 1,
                 "d".repeat(21),
                 LocalDateTime.now().plusDays(1),
-                new Location(0, 0),
+                new Coordinate(0, 0),
                 false,
                 0,
                 false,
@@ -203,7 +203,7 @@ public class EventControllerAdminTest {
                 1,
                 "d".repeat(21),
                 LocalDateTime.now().plusDays(1),
-                new Location(0, 0),
+                new Coordinate(0, 0),
                 false,
                 0,
                 false,
