@@ -16,9 +16,9 @@ import ru.practicum.ewm.category.storage.CategoryRepository;
 import ru.practicum.ewm.client.StatsClient;
 import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.event.model.ActionState;
+import ru.practicum.ewm.event.model.Coordinate;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
-import ru.practicum.ewm.event.model.Location;
 import ru.practicum.ewm.event.model.SortType;
 import ru.practicum.ewm.event.model.dto.EventFullDto;
 import ru.practicum.ewm.event.model.dto.EventShortDto;
@@ -31,9 +31,12 @@ import ru.practicum.ewm.exception.CategoryNotFoundException;
 import ru.practicum.ewm.exception.EventDateException;
 import ru.practicum.ewm.exception.EventNotFoundException;
 import ru.practicum.ewm.exception.OperationConditionsFailureException;
+import ru.practicum.ewm.exception.LocationNotFoundException;
 import ru.practicum.ewm.exception.UserNotFoundException;
+import ru.practicum.ewm.location.model.Location;
 import ru.practicum.ewm.participationrequest.model.ParticipationRequestStatus;
 import ru.practicum.ewm.participationrequest.storage.ParticipationRequestRepository;
+import ru.practicum.ewm.location.storage.LocationRepository;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.storage.UserRepository;
 
@@ -47,6 +50,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -63,6 +67,8 @@ public class EventServiceTest {
     private UserRepository userRepository;
     @Mock
     private ParticipationRequestRepository requestStorage;
+    @Mock
+    private LocationRepository locationRepository;
     @Mock
     private StatsClient statsClient;
     @InjectMocks
@@ -100,7 +106,7 @@ public class EventServiceTest {
                 event.getCategory().getId(),
                 event.getDescription(),
                 event.getEventDate(),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -111,7 +117,7 @@ public class EventServiceTest {
                 event.getCategory().getId(),
                 event.getDescription(),
                 event.getEventDate(),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -123,7 +129,7 @@ public class EventServiceTest {
                 event.getCategory().getId(),
                 event.getDescription(),
                 event.getEventDate(),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -232,7 +238,7 @@ public class EventServiceTest {
                 event.getCategory().getId(),
                 event.getDescription(),
                 LocalDateTime.now(),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -366,7 +372,7 @@ public class EventServiceTest {
                 event.getCategory().getId(),
                 event.getDescription(),
                 LocalDateTime.now().minusDays(1),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -402,7 +408,7 @@ public class EventServiceTest {
                 event.getCategory().getId(),
                 event.getDescription(),
                 event.getEventDate(),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -650,7 +656,7 @@ public class EventServiceTest {
                 event.getCategory().getId(),
                 event.getDescription(),
                 LocalDateTime.now(),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -683,7 +689,7 @@ public class EventServiceTest {
                 event.getCategory().getId(),
                 event.getDescription(),
                 event.getEventDate(),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -726,6 +732,56 @@ public class EventServiceTest {
         assertThat(
                 e.getMessage(),
                 equalTo("Категория с id=1 не найдена")
+        );
+    }
+
+    @Test
+    public void shouldGetEventsInLocation() {
+        Location location = new Location(
+                1,
+                "location",
+                "test location description",
+                0,
+                0,
+                1
+        );
+        Mockito
+                .when(locationRepository.findById(anyInt()))
+                .thenReturn(Optional.of(location));
+        Mockito
+                .when(requestStorage.countByStatusAndEventId(any(ParticipationRequestStatus.class), anyInt()))
+                .thenReturn(0);
+        Mockito
+                .when(statsClient.getStats(any(LocalDateTime.class), any(LocalDateTime.class), anyList(), anyBoolean()))
+                .thenReturn(ResponseEntity.ok().body(Collections.emptyList()));
+        Mockito
+                .when(eventRepository.findEventsInLocation(anyDouble(), anyDouble(), anyDouble(), any(Pageable.class)))
+                .thenReturn(List.of(event));
+
+        List<EventShortDto> events = eventService.getEventsInLocation(1, 0, 10);
+
+        assertThat(events.size(), equalTo(1));
+
+        EventShortDto eventShortDto = eventToShortDto(event, 0, 0L);
+        EventShortDto eventShortDtoFromService = events.get(0);
+
+        assertThat(eventShortDto, equalTo(eventShortDtoFromService));
+    }
+
+    @Test
+    public void shouldNotGetEventsInLocationWhenLocationNotFound() {
+        Mockito
+                .when(locationRepository.findById(anyInt()))
+                .thenReturn(Optional.empty());
+
+        LocationNotFoundException e = Assertions.assertThrows(
+                LocationNotFoundException.class,
+                () -> eventService.getEventsInLocation(1, 0, 10)
+        );
+
+        assertThat(
+                e.getMessage(),
+                equalTo("Локация с id=1 не найдена")
         );
     }
 }

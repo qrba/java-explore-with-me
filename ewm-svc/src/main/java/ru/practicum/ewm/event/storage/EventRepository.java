@@ -56,4 +56,9 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     );
 
     Integer countByCategoryId(Integer catId);
+
+    @Query(value = "SELECT e " +
+            "FROM Event AS e " +
+            "WHERE (event_is_in_location(e.lat, e.lon, :lat, :lon, :radius) = true)")
+    List<Event> findEventsInLocation(Double lat, Double lon, Double radius, Pageable pageable);
 }

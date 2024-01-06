@@ -35,7 +35,7 @@ public class CategoryControllerAdmin {
     }
 
     @PatchMapping("/{catId}")
-    public CategoryDto updateUser(@PathVariable Integer catId, @Valid @RequestBody CategoryDto categoryDto) {
+    public CategoryDto updateCategory(@PathVariable Integer catId, @Valid @RequestBody CategoryDto categoryDto) {
         categoryDto.setId(catId);
         return categoryService.updateCategory(categoryDto);
     }

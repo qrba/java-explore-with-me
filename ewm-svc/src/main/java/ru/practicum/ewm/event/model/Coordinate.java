@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor
-public class Location {
+public class Coordinate {
     private final double lat;
     private final double lon;
 }

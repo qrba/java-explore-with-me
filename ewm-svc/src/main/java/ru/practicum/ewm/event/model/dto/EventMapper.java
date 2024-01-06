@@ -1,9 +1,9 @@
 package ru.practicum.ewm.event.model.dto;
 
 import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.event.model.Coordinate;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
-import ru.practicum.ewm.event.model.Location;
 import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
@@ -34,7 +34,7 @@ public class EventMapper {
                 categoryToCategoryDto(event.getCategory()),
                 event.getDescription(),
                 event.getEventDate(),
-                new Location(event.getLat(), event.getLon()),
+                new Coordinate(event.getLat(), event.getLon()),
                 event.isPaid(),
                 event.getParticipantLimit(),
                 event.isRequestModeration(),
@@ -55,8 +55,8 @@ public class EventMapper {
                 category,
                 newEventDto.getDescription(),
                 newEventDto.getEventDate(),
-                newEventDto.getLocation().getLat(),
-                newEventDto.getLocation().getLon(),
+                newEventDto.getCoordinate().getLat(),
+                newEventDto.getCoordinate().getLon(),
                 newEventDto.isPaid(),
                 newEventDto.getParticipantLimit(),
                 newEventDto.getRequestModeration() == null || newEventDto.getRequestModeration(),

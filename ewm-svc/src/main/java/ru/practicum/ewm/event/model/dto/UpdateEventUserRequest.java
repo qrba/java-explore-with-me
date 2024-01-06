@@ -1,9 +1,10 @@
 package ru.practicum.ewm.event.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import ru.practicum.ewm.event.model.Location;
+import ru.practicum.ewm.event.model.Coordinate;
 import ru.practicum.ewm.event.model.ActionState;
 
 import javax.validation.constraints.Size;
@@ -19,7 +20,8 @@ public class UpdateEventUserRequest {
     private final String description;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private final LocalDateTime eventDate;
-    private final Location location;
+    @JsonProperty("location")
+    private final Coordinate coordinate;
     private final Boolean paid;
     private final Integer participantLimit;
     private final Boolean requestModeration;

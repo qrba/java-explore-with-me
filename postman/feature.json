@@ -1,0 +1,1130 @@
+{
+	"info": {
+		"_postman_id": "96385f10-441f-4a9c-ac62-f5e95661f579",
+		"name": "ewm-location-processing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28493938"
+	},
+	"item": [
+		{
+			"name": "add location with blank name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is BAD REQUEST\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(400);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"\",\r\n  \"description\": \"Some new location made for testing purposes\",\r\n  \"location\": {\r\n    \"lat\": 0,\r\n    \"lon\": 0\r\n  },\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add location with name too long",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is BAD REQUEST\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(400);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"location names longer than 50 characters are prohibited\",\r\n  \"description\": \"Some new location made for testing purposes\",\r\n  \"location\": {\r\n    \"lat\": 0,\r\n    \"lon\": 0\r\n  },\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add location with blank description",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is BAD REQUEST\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(400);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"A new location\",\r\n  \"description\": \"\",\r\n  \"location\": {\r\n    \"lat\": 0,\r\n    \"lon\": 0\r\n  },\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add location with description too short",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is BAD REQUEST\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(400);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"A new location\",\r\n  \"description\": \"description\",\r\n  \"location\": {\r\n    \"lat\": 0,\r\n    \"lon\": 0\r\n  },\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add location with description too long",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is BAD REQUEST\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(400);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"A new location\",\r\n  \"description\": \"ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\r\n  \"location\": {\r\n    \"lat\": 0,\r\n    \"lon\": 0\r\n  },\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add location with no location",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is BAD REQUEST\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(400);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"A new location\",\r\n  \"description\": \"Some new location made for testing purposes\",\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add location with radius=0",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is BAD REQUEST\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(400);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"A new location\",\r\n  \"description\": \"Some new location made for testing purposes\",\r\n  \"location\": {\r\n    \"lat\": 0,\r\n    \"lon\": 0\r\n  },\r\n  \"radius\": \"0\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add location",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is CREATED\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(201);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"A new location\",\r\n  \"description\": \"Some new location made for testing purposes\",\r\n  \"location\": {\r\n    \"lat\": 0,\r\n    \"lon\": 0\r\n  },\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add location with name not unique",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is CONFLICT\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(409);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"A new location\",\r\n  \"description\": \"Some new location made for testing purposes\",\r\n  \"location\": {\r\n    \"lat\": 0,\r\n    \"lon\": 0\r\n  },\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add 2nd location",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is CREATED\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(201);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Another new location\",\r\n  \"description\": \"Some new location made for testing purposes\",\r\n  \"location\": {\r\n    \"lat\": 55,\r\n    \"lon\": 37\r\n  },\r\n  \"radius\": \"0.25\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update with name not unique",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is CONFLICT\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(409);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Another new location\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update location",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is OK\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Some other new location\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/3",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update location not found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is NOT FOUND\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(404);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Some other new location\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/4",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get locations",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is OK\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"pm.test(\"List length is 2\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.length, 'List length must be 2').to.eql(2);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get locations search by text",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is OK\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"pm.test(\"List length is 1\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.length, 'List length must be 1').to.eql(1);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/locations?text=other",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"locations"
+					],
+					"query": [
+						{
+							"key": "text",
+							"value": "other"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get location by id not found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is NOT FOUND\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(404);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/locations/4",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"locations",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get location by id=1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is OK\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/locations/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"locations",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get events location not found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is NOT FOUND\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(404);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/locations/4/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"locations",
+						"4",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add category",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is CREATED\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(201);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"category\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/categories",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"categories"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is CREATED\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(201);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"user\",\r\n  \"email\": \"user@email.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/admin/users/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is CREATED\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(201);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"annotation\": \"aaaaaaaaaaaaaaaaaaaaaaa\",\r\n  \"category\": 1,\r\n  \"description\": \"ddddddddddddddddddddddd\",\r\n  \"eventDate\": \"2024-01-08 14:00:00\",\r\n  \"location\": {\r\n    \"lat\": 0.00001,\r\n    \"lon\": 0.00001\r\n  },\r\n  \"paid\": false,\r\n  \"participantLimit\": 10,\r\n  \"requestModeration\": true,\r\n  \"title\": \"birthday\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/1/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"1",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get events locationId=1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is OK\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"pm.test(\"List length is 1\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.length, 'List length must be 1').to.eql(1);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/locations/1/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"locations",
+						"1",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get events locationId=3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is OK\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"pm.test(\"List length is 0\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.length, 'List length must be 0').to.eql(0);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/locations/3/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"locations",
+						"3",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete location not found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is NOT FOUND\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(404);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/4",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete location id=3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is NO CONTENT\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/admin/locations/3",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"admin",
+						"locations",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get locations after delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is OK\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"});\r",
+							"pm.test(\"Has response body\", function () {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"pm.test(\"List length is 1\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.length, 'List length must be 1').to.eql(1);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/locations",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"locations"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
